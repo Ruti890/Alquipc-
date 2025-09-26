@@ -51,74 +51,75 @@ export default function AlquipcDashboard() {
     2: "Fuera de la Ciudad",
     3: "Dentro del Establecimiento",
   }
+const validarNombre = (nombre: string) => /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre.trim())
+const validarTelefono = (telefono: string) => /^\d{10}$/.test(telefono)
+const validarEmail = (email: string) => /^[\w.-]+@[\w.-]+\.\w+$/.test(email)
 
-  const validarNombre = (nombre: string) => nombre.trim().length > 0
-  const validarTelefono = (telefono: string) => /^\d{10}$/.test(telefono)
-  const validarEmail = (email: string) => /^[\w.-]+@[\w.-]+\.\w+$/.test(email)
+const formatearMoneda = (valor: number) => {
+  return `$${valor.toLocaleString("es-CO")}`
+}
 
-  const formatearMoneda = (valor: number) => {
-    return `$${valor.toLocaleString("es-CO")}`
+const calcularFactura = () => {
+  const newErrors: Record<string, string> = {}
+
+  if (!validarNombre(clientData.nombre)) {
+    newErrors.nombre = "El nombre no puede estar vacío ni contener números"
+  }
+  if (!clientData.idCliente || !clientData.idCliente.match(/^\d+$/)) {
+    newErrors.idCliente = "El ID debe ser numérico"
+  }
+  if (!validarTelefono(clientData.telefono)) {
+    newErrors.telefono = "El teléfono debe tener 10 dígitos"
+  }
+  if (!validarEmail(clientData.email)) {
+    newErrors.email = "Email inválido"
+  }
+  if (clientData.servicio === 0) {
+    newErrors.servicio = "Seleccione un tipo de servicio"
+  }
+  if (clientData.equipos < 2) {
+    newErrors.equipos = "Mínimo 2 equipos"
+  }
+  if (clientData.diasIniciales < 1) {
+    newErrors.diasIniciales = "Mínimo 1 día"
   }
 
-  const calcularFactura = () => {
-    const newErrors: Record<string, string> = {}
+  setErrors(newErrors)
 
-    if (!validarNombre(clientData.nombre)) {
-      newErrors.nombre = "El nombre no puede estar vacío"
-    }
-    if (!clientData.idCliente || !clientData.idCliente.match(/^\d+$/)) {
-      newErrors.idCliente = "El ID debe ser numérico"
-    }
-    if (!validarTelefono(clientData.telefono)) {
-      newErrors.telefono = "El teléfono debe tener 10 dígitos"
-    }
-    if (!validarEmail(clientData.email)) {
-      newErrors.email = "Email inválido"
-    }
-    if (clientData.servicio === 0) {
-      newErrors.servicio = "Seleccione un tipo de servicio"
-    }
-    if (clientData.equipos < 2) {
-      newErrors.equipos = "Mínimo 2 equipos"
-    }
-    if (clientData.diasIniciales < 1) {
-      newErrors.diasIniciales = "Mínimo 1 día"
-    }
-
-    setErrors(newErrors)
-
-    if (Object.keys(newErrors).length > 0) {
-      return
-    }
-
-    const valorInicial = clientData.equipos * clientData.diasIniciales * PRECIO_DIA
-    let valorAdicional = clientData.equipos * clientData.diasAdicionales * PRECIO_DIA
-
-    // Descuento 2% en días adicionales
-    const descuentoAdicional = valorAdicional * 0.02
-    valorAdicional -= descuentoAdicional
-
-    let incrementoDomicilio = 0
-    let descuentoEstablecimiento = 0
-
-    if (clientData.servicio === 2) {
-      // Fuera de la ciudad
-      incrementoDomicilio = (valorInicial + valorAdicional) * 0.05
-    } else if (clientData.servicio === 3) {
-      // Dentro del establecimiento
-      descuentoEstablecimiento = (valorInicial + valorAdicional) * 0.05
-    }
-
-    const total = valorInicial + valorAdicional + incrementoDomicilio - descuentoEstablecimiento
-
-    setFactura({
-      valorInicial,
-      valorAdicional,
-      incrementoDomicilio,
-      descuentoEstablecimiento,
-      total,
-    })
+  if (Object.keys(newErrors).length > 0) {
+    return
   }
+
+  const valorInicial = clientData.equipos * clientData.diasIniciales * PRECIO_DIA
+
+  // Usar valor estándar de 3500 para días adicionales
+  let valorAdicional = clientData.equipos * clientData.diasAdicionales * 3500
+
+  // Descuento 2% en días adicionales
+  const descuentoAdicional = valorAdicional * 0.02
+  valorAdicional -= descuentoAdicional
+
+  let incrementoDomicilio = 0
+  let descuentoEstablecimiento = 0
+
+  if (clientData.servicio === 2) {
+    // Fuera de la ciudad
+    incrementoDomicilio = (valorInicial + valorAdicional) * 0.05
+  } else if (clientData.servicio === 3) {
+    // Dentro del establecimiento
+    descuentoEstablecimiento = (valorInicial + valorAdicional) * 0.05
+  }
+
+  const total = valorInicial + valorAdicional + incrementoDomicilio - descuentoEstablecimiento
+
+  setFactura({
+    valorInicial,
+    valorAdicional,
+    incrementoDomicilio,
+    descuentoEstablecimiento,
+    total,
+  })
+}
 
   const limpiarFormulario = () => {
     setClientData({
