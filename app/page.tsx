@@ -79,6 +79,8 @@ const calcularFactura = () => {
   }
   if (clientData.equipos < 2) {
     newErrors.equipos = "Mínimo 2 equipos"
+  } else if (clientData.equipos > 200) {
+    newErrors.equipos = "Máximo 200 equipos"
   }
   if (clientData.diasIniciales < 1) {
     newErrors.diasIniciales = "Mínimo 1 día"
