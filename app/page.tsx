@@ -82,10 +82,15 @@ const calcularFactura = () => {
   } else if (clientData.equipos > 200) {
     newErrors.equipos = "Máximo 200 equipos"
   }
-  if (clientData.diasIniciales < 1) {
+ if (clientData.diasIniciales < 1) {
     newErrors.diasIniciales = "Mínimo 1 día"
-  }
+  }else if (clientData.diasIniciales > 30)
+  {newErrors.diasIniciales = "Máximo 30 días"}
 
+  if (clientData.diasAdicionales < 0) {
+    newErrors.diasAdicionales = "No puede ser negativo"
+  }else if (clientData.diasAdicionales > 15)
+  {newErrors.diasAdicionales = "Máximo 15 días"}
   setErrors(newErrors)
 
   if (Object.keys(newErrors).length > 0) {
