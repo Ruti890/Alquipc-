@@ -32,9 +32,15 @@ interface FacturaData {
 }
 
 export default function AlquipcDashboard() {
+  const generarIdCliente = () => {
+    const timestamp = Date.now().toString().slice(-6) 
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0")
+    return `C-${timestamp}${random}` 
+  }
+
   const [clientData, setClientData] = useState<ClientData>({
     nombre: "",
-    idCliente: "",
+    idCliente: generarIdCliente(), 
     telefono: "",
     email: "",
     servicio: 0,
@@ -51,52 +57,60 @@ export default function AlquipcDashboard() {
     2: "Fuera de la Ciudad",
     3: "Dentro del Establecimiento",
   }
-const validarNombre = (nombre: string) => /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre.trim())
-const validarTelefono = (telefono: string) => /^\d{10}$/.test(telefono)
-const validarEmail = (email: string) => /^[\w.-]+@[\w.-]+\.\w+$/.test(email)
 
-const formatearMoneda = (valor: number) => {
-  return `$${valor.toLocaleString("es-CO")}`
+  const validarNombre = (nombre: string) => /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(nombre.trim())
+  const validarTelefono = (telefono: string) => /^\d{10}$/.test(telefono)
+  const validarEmail = (email: string) => /^[\w.-]+@[\w.-]+\.\w+$/.test(email)
+
+  const formatearMoneda = (valor: number) => {
+    return `$${valor.toLocaleString("es-CO")}`
+  }
+
+  const calcularFactura = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!validarNombre(clientData.nombre)) {
+      newErrors.nombre = "El nombre no puede estar vacío ni contener números"
+    }
+
+    if (!validarTelefono(clientData.telefono)) {
+      newErrors.telefono = "El teléfono debe tener 10 dígitos"
+    }
+
+    if (!validarEmail(clientData.email)) {
+      newErrors.email = "Email inválido"
+    }
+
+    if (clientData.servicio === 0) {
+      newErrors.servicio = "Seleccione un tipo de servicio"
+    }
+
+    if (clientData.equipos < 2) {
+      newErrors.equipos = "Mínimo 2 equipos"
+    } else if (clientData.equipos > 200) {
+      newErrors.equipos = "Máximo 200 equipos"
+    }
+
+    if (clientData.diasIniciales < 1) {
+      newErrors.diasIniciales = "Mínimo 1 día"
+    } else if (clientData.diasIniciales > 30) {
+      newErrors.diasIniciales = "Máximo 30 días"
+    }
+
+    if (clientData.diasAdicionales < 0) {
+      newErrors.diasAdicionales = "No puede ser negativo"
+    } else if (clientData.diasAdicionales > 15) {
+      newErrors.diasAdicionales = "Máximo 15 días"
+    }
+
+    setErrors(newErrors)
+
+    if (Object.keys(newErrors).length > 0) {
+      return
+    }
+  }
 }
 
-const calcularFactura = () => {
-  const newErrors: Record<string, string> = {}
-
-  if (!validarNombre(clientData.nombre)) {
-    newErrors.nombre = "El nombre no puede estar vacío ni contener números"
-  }
-  if (!clientData.idCliente || !clientData.idCliente.match(/^\d+$/)) {
-    newErrors.idCliente = "El ID debe ser numérico"
-  }
-  if (!validarTelefono(clientData.telefono)) {
-    newErrors.telefono = "El teléfono debe tener 10 dígitos"
-  }
-  if (!validarEmail(clientData.email)) {
-    newErrors.email = "Email inválido"
-  }
-  if (clientData.servicio === 0) {
-    newErrors.servicio = "Seleccione un tipo de servicio"
-  }
-  if (clientData.equipos < 2) {
-    newErrors.equipos = "Mínimo 2 equipos"
-  }else if (clientData.equipos > 200) 
-  {newErrors.equipos = "Máximo 200 equipos"}
-
-  if (clientData.diasIniciales < 1) {
-    newErrors.diasIniciales = "Mínimo 1 día"
-  }else if (clientData.diasIniciales > 30)
-  {newErrors.diasIniciales = "Máximo 30 días"}
-
-  if (clientData.diasAdicionales < 0) {
-    newErrors.diasAdicionales = "No puede ser negativo"
-  }else if (clientData.diasAdicionales > 15)
-  {newErrors.diasAdicionales = "Máximo 15 días"}
-
-  setErrors(newErrors)
-
-  if (Object.keys(newErrors).length > 0) {
-    return
-  }
 
   const valorInicial = clientData.equipos * clientData.diasIniciales * PRECIO_DIA
 
