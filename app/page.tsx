@@ -32,15 +32,16 @@ interface FacturaData {
 }
 
 export default function AlquipcDashboard() {
+  
   const generarIdCliente = () => {
-    const timestamp = Date.now().toString().slice(-6) 
+    const timestamp = Date.now().toString().slice(-6)
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0")
-    return `C-${timestamp}${random}` 
+    return `C-${timestamp}${random}`
   }
 
   const [clientData, setClientData] = useState<ClientData>({
     nombre: "",
-    idCliente: generarIdCliente(), 
+    idCliente: "", 
     telefono: "",
     email: "",
     servicio: 0,
@@ -69,6 +70,7 @@ export default function AlquipcDashboard() {
   const calcularFactura = () => {
     const newErrors: Record<string, string> = {}
 
+    
     if (!validarNombre(clientData.nombre)) {
       newErrors.nombre = "El nombre no puede estar vacío ni contener números"
     }
@@ -105,43 +107,48 @@ export default function AlquipcDashboard() {
 
     setErrors(newErrors)
 
+    
     if (Object.keys(newErrors).length > 0) {
       return
     }
+
+    
+    const idGenerado = generarIdCliente()
+
+    
+    setClientData((prev) => ({
+      ...prev,
+      idCliente: idGenerado,
+    }))
+
+    
+    const valorInicial = clientData.equipos * clientData.diasIniciales * PRECIO_DIA
+
+    let valorAdicional = clientData.equipos * clientData.diasAdicionales * 3500
+
+    const descuentoAdicional = valorAdicional * 0.02
+    valorAdicional -= descuentoAdicional
+
+    let incrementoDomicilio = 0
+    let descuentoEstablecimiento = 0
+
+    if (clientData.servicio === 2) {
+      incrementoDomicilio = (valorInicial + valorAdicional) * 0.05
+    } else if (clientData.servicio === 3) {
+      descuentoEstablecimiento = (valorInicial + valorAdicional) * 0.05
+    }
+
+    const total = valorInicial + valorAdicional + incrementoDomicilio - descuentoEstablecimiento
+
+    
+    setFactura({
+      valorInicial,
+      valorAdicional,
+      incrementoDomicilio,
+      descuentoEstablecimiento,
+      total,
+    })
   }
-}
-
-
-  const valorInicial = clientData.equipos * clientData.diasIniciales * PRECIO_DIA
-
-  // Usar valor estándar de 3500 para días adicionales
-  let valorAdicional = clientData.equipos * clientData.diasAdicionales * 3500
-
-  // Descuento 2% en días adicionales
-  const descuentoAdicional = valorAdicional * 0.02
-  valorAdicional -= descuentoAdicional
-
-  let incrementoDomicilio = 0
-  let descuentoEstablecimiento = 0
-
-  if (clientData.servicio === 2) {
-    // Fuera de la ciudad
-    incrementoDomicilio = (valorInicial + valorAdicional) * 0.05
-  } else if (clientData.servicio === 3) {
-    // Dentro del establecimiento
-    descuentoEstablecimiento = (valorInicial + valorAdicional) * 0.05
-  }
-
-  const total = valorInicial + valorAdicional + incrementoDomicilio - descuentoEstablecimiento
-
-  setFactura({
-    valorInicial,
-    valorAdicional,
-    incrementoDomicilio,
-    descuentoEstablecimiento,
-    total,
-  })
-}
 
   const limpiarFormulario = () => {
     setClientData({
